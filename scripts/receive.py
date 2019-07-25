@@ -43,8 +43,11 @@ def getTime(string, format, returnFormat):
 
 
 def fmtLatLng(latString, ns, lngString, ew):
-    lat = float(latString)
-    lon = float(lngString)
+    print("[fmtLatLng] Lat:",latString, ns, "Lon:", lngString, ew)
+    lat = latString[:2].lstrip('0') + "." + "%.7s" % str(float(latString[2:])*1.0/60.0).lstrip("0.")
+    lat = float(lat[:-1])
+    lon = lngString[:3].lstrip('0') + "." + "%.7s" % str(float(lngString[3:])*1.0/60.0).lstrip("0.")
+    lon = float(lon[:-1])
     if ns == 'S':
         lat = -lat
     if ew == 'W':
@@ -53,6 +56,7 @@ def fmtLatLng(latString, ns, lngString, ew):
 
 
 def getLatLng(latString, lngString):
+    print("[getLatLng] Lat:", latString, "Lon:", lngString)
     lat = latString[:2].lstrip(
         '0') + "." + "%.7s" % str(float(latString[2:])*1.0/60.0).lstrip("0.")
     lng = lngString[:3].lstrip(
@@ -63,28 +67,30 @@ def getLatLng(latString, lngString):
 def printGGA(lines):
     print("========================================GGA========================================")
     # print(lines, '\n')
-    
-    print("Fix taken at:", getTime(lines[1], "%H%M%S.%f", "%H:%M:%S"), "UTC")
-    time = lines[1]
-    latlng = getLatLng(lines[2], lines[4])
-    latlon = fmtLatLng(lines[2], lines[3], lines[4], lines[5])
-    lat = latlon[0]
-    lon = latlon[1]
-    print("Lat,Long: ", latlng[0], lines[3], ", ", latlng[1], lines[5], sep='')
-    print("Fix quality (0 = invalid, 1 = fix, 2..8):", lines[6])
-    valid = float(lines[6])
-    print("Satellites:", lines[7].lstrip("0"))
-    nsat = float(lines[7])
-    print("Horizontal dilution:", lines[8])
-    hdop = float(lines[8])
-    print("Altitude: ", lines[9], lines[10], sep="")
-    alt = float(lines[9])+float(lines[11])
-    print("Height of geoid: ", lines[11], lines[12], sep="")
-    print("Time in seconds since last DGPS update:", lines[13])
-    print("DGPS station ID number:", lines[14].partition("*")[0])
-    obj = GGAobject(time, lat, lon, alt, valid, nsat, hdop)
-    return obj
-
+    try:
+        print("Fix taken at:", getTime(lines[1], "%H%M%S.%f", "%H:%M:%S"), "UTC")
+        time = lines[1]
+        latlng = getLatLng(lines[2], lines[4])
+        latlon = fmtLatLng(lines[2], lines[3], lines[4], lines[5])
+        lat = latlon[0]
+        lon = latlon[1]
+        print("Lat,Long: ", latlng[0], lines[3], ", ", latlng[1], lines[5], sep='')
+        print("Fix quality (0 = invalid, 1 = fix, 2..8):", lines[6])
+        valid = float(lines[6])
+        print("Satellites:", lines[7].lstrip("0"))
+        nsat = float(lines[7])
+        print("Horizontal dilution:", lines[8])
+        hdop = float(lines[8])
+        print("Altitude: ", lines[9], lines[10], sep="")
+        alt = float(lines[9])+float(lines[11])
+        print("Height of geoid: ", lines[11], lines[12], sep="")
+        print("Time in seconds since last DGPS update:", lines[13])
+        print("DGPS station ID number:", lines[14].partition("*")[0])
+        obj = GGAobject(time, lat, lon, alt, valid, nsat, hdop)
+        return obj
+    except:
+        print("Erro ao parsear sentenca")
+        return None
 
 def printGSA(lines):
     print("========================================GSA========================================")
@@ -153,13 +159,15 @@ if __name__ == '__main__':
         if checksum(line):
                 if lines[0][2:] == "GGA":
                     ggaobj = printGGA(lines)
+                    if ggaobj is None:
+                        print("Object is None!!!!!!!")
+                        continue
                     fix.altitude = ggaobj.alt
                     fix.latitude = ggaobj.lat
                     fix.longitude = ggaobj.lon
                     fix.position_covariance[0] = ggaobj.hdop ** 2
                     fix.position_covariance[4] = ggaobj.hdop ** 2
                     fix.position_covariance[8] = (2 * ggaobj.hdop) ** 2
-
                     pub.publish(fix)
 
                     pass

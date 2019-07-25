@@ -33,8 +33,11 @@ def readString():
     while 1:
         while ser.read().decode("utf-8") != '$':  # Wait for the begging of the string
             pass  # Do nothing
-        line = ser.readline().decode("utf-8")  # Read the entire string
-        return line
+        try:        
+            line = ser.readline().decode("utf-8")  # Read the entire string
+            return line
+        except:
+            continue
 
 
 def getTime(string, format, returnFormat):

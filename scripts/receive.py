@@ -94,7 +94,7 @@ def printGGA(lines):
         obj = GGAobject(time, lat, lon, alt, valid, nsat, hdop)
         return obj
     except:
-        print("ERRO: Satélites insuficientes para gerar dados!")
+        print("ERRO: Satelites insuficientes para gerar dados!")
         return None
 
 def printGSA(lines):
@@ -194,4 +194,4 @@ if __name__ == '__main__':
                 else:
                     print("\n\nUnknown type:", lines[0], "\n\n")
 
-rate.sleep()
+        rate.sleep()

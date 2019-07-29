@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-
 from __future__ import print_function
 import rospy
 import serial
 import time
-#import os
-#import sys
+
 
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Header
@@ -35,7 +32,8 @@ def readString():
         while ser.read().decode("utf-8") != '$':  # Wait for the begging of the string
             pass  # Do nothing
         try:        
-            line = ser.readline().decode("utf-8")  # Read the entire string
+            line = ser.readline()
+            line = line.decode("utf-8")  # Read the entire string
             return line
         except:
             print("Erro ao decodificar UTF-8")
@@ -97,25 +95,25 @@ def printGGA(lines):
         print("ERRO: Satelites insuficientes para gerar dados!")
         return None
 
-def printGSA(lines):
-    print("========================================GSA========================================")
-    # print(lines, '\n')
-    obj = GSAobject()
+# def printGSA(lines):
+#     print("========================================GSA========================================")
+#     # print(lines, '\n')
+#     obj = GSAobject()
 
-    print("Selection of 2D or 3D fix (A=Auto,M=Manual):", lines[1])
-    print("3D fix (1=No fix,2=2D fix, 3=3D fix):", lines[2])
-    print("PRNs of satellites used for fix:", end='')
-    for i in range(0, 12):
-        prn = lines[3+i].lstrip("0")
-        if prn:
-            print(" ", prn, end='')
-    print("\nPDOP", lines[15])
-    print("HDOP", lines[16])
-    print("VDOP", lines[17].partition("*")[0])
-    obj.PDOP = lines[15]
-    obj.HDOP = lines[16]
-    obj.VDOP = lines[17].partition("*")[0]
-    return obj
+#     print("Selection of 2D or 3D fix (A=Auto,M=Manual):", lines[1])
+#     print("3D fix (1=No fix,2=2D fix, 3=3D fix):", lines[2])
+#     print("PRNs of satellites used for fix:", end='')
+#     for i in range(0, 12):
+#         prn = lines[3+i].lstrip("0")
+#         if prn:
+#             print(" ", prn, end='')
+#     print("\nPDOP", lines[15])
+#     print("HDOP", lines[16])
+#     print("VDOP", lines[17].partition("*")[0])
+#     obj.PDOP = lines[15]
+#     obj.HDOP = lines[16]
+#     obj.VDOP = lines[17].partition("*")[0]
+#     return obj
 
 
 def checksum(line):
@@ -149,7 +147,7 @@ if __name__ == '__main__':
 
     # you can define functions to provide the required functionality
 
-    ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)  # Open Serial port
+    ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)  # Open Serial port
 
     # set a publishing rate. Below is a publishing rate of 10 times/second
     rate = rospy.Rate(5)
@@ -165,7 +163,7 @@ if __name__ == '__main__':
                 if lines[0][2:] == "GGA":
                     ggaobj = printGGA(lines)
                     if ggaobj is None:
-                        print("Object is None!!!!!!!")
+                        print("Empty object received.")
                         continue
                     fix.altitude = ggaobj.alt
                     fix.latitude = ggaobj.lat

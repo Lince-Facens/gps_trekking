@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import rospy
 import serial
@@ -143,11 +144,11 @@ if __name__ == '__main__':
     rospy.init_node('gps_receive')
 
     # publish messages to a topic using rospy.Publisher class
-    pub = rospy.Publisher('gps_data', NavSatFix, queue_size=10)
+    pub = rospy.Publisher('fix', NavSatFix, queue_size=10)
 
     # you can define functions to provide the required functionality
 
-    ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)  # Open Serial port
+    ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)  # Open Serial port
 
     # set a publishing rate. Below is a publishing rate of 10 times/second
     rate = rospy.Rate(5)
@@ -171,7 +172,6 @@ if __name__ == '__main__':
                     fix.position_covariance[0] = ggaobj.hdop ** 2
                     fix.position_covariance[4] = ggaobj.hdop ** 2
                     fix.position_covariance[8] = (2 * ggaobj.hdop) ** 2
-                    pub.publish(fix)
 
                     pass
                 elif lines[0][2:] == "GSA":
@@ -191,5 +191,7 @@ if __name__ == '__main__':
                     pass
                 else:
                     print("\n\nUnknown type:", lines[0], "\n\n")
+                
+                pub.publish(fix)
 
         rate.sleep()
